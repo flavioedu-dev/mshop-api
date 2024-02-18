@@ -67,7 +67,6 @@ namespace mshop_api.Services
                 User userExist = await GetUserByEmail(user.Email);
                 if (userExist != null) throw new Exception("User already registered.");
 
-
                 var newUser = await _context.users.AddAsync(user);
                 if (newUser == null) throw new Exception("Error creating user.");
 
