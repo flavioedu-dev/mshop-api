@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using mshop_api.Context;
+using mshop_api.Services;
+using mshop_api.Services.Interfaces;
 
 namespace mshop_api
 {
@@ -14,6 +16,7 @@ namespace mshop_api
                 opt.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
             );
 
+            builder.Services.AddScoped<IUserServices, UserServices>();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
