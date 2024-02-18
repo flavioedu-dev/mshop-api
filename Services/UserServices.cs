@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using mshop_api.Context;
 using mshop_api.Models;
+using mshop_api.Models.DTO;
 using mshop_api.Services.Interfaces;
 
 namespace mshop_api.Services
@@ -18,7 +21,10 @@ namespace mshop_api.Services
         {
             try
             {
-                return await _context.users.ToListAsync();
+                IEnumerable<User> users = await _context.users.ToListAsync();
+                if (users == null) throw new Exception("Error finding users.");
+
+                return users;
             }
             catch (Exception ex)
             {
@@ -30,7 +36,9 @@ namespace mshop_api.Services
         {
             try
             {
-                return  await _context.users.SingleOrDefaultAsync(x => x.Id == id);
+                User user = await _context.users.SingleOrDefaultAsync(x => x.Id == id);
+
+                return user;
             }
             catch (Exception ex)
             {
@@ -42,24 +50,7 @@ namespace mshop_api.Services
         {
             try
             {
-                return await _context.users.SingleOrDefaultAsync(x => x.Email == email);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public async Task<User> CreateUser(User user)
-        {
-            try
-            {
-                User userExist = await GetUserByEmail(user.Email);
-                if (userExist != null) throw new Exception("User already registered.");
-
-                _context.users.Add(user);
-
-                _context.SaveChanges();
+                User user = await _context.users.SingleOrDefaultAsync(x => x.Email == email);
 
                 return user;
             }
@@ -68,7 +59,28 @@ namespace mshop_api.Services
                 throw ex;
             }
         }
-        public async Task<bool> UpdateUser(User user)
+
+        public async Task<User> CreateUser([FromBody] User user)
+        {
+            try
+            {
+                User userExist = await GetUserByEmail(user.Email);
+                if (userExist != null) throw new Exception("User already registered.");
+
+
+                var newUser = await _context.users.AddAsync(user);
+                if (newUser == null) throw new Exception("Error creating user.");
+
+                await _context.SaveChangesAsync();
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<bool> UpdateUser([FromBody] UserDTO user)
         {
             try
             {
@@ -78,7 +90,7 @@ namespace mshop_api.Services
                 userExist.Name = user.Name;
                 userExist.Password = user.Password;
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 return true;
             }
@@ -97,7 +109,7 @@ namespace mshop_api.Services
 
                 _context.users.Remove(userExist);
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 return true;
             }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using mshop_api.Models;
+using mshop_api.Models.DTO;
 using mshop_api.Services.Interfaces;
 
 namespace mshop_api.Controllers
@@ -21,7 +22,7 @@ namespace mshop_api.Controllers
             try
             {
                 var users = await _users.GetUsers();
-                if (users == null) throw new Exception("Error finding users.");
+                if (users == null) return BadRequest("Error finding users;");
 
                 return Ok(users);
             }
@@ -37,7 +38,7 @@ namespace mshop_api.Controllers
             try
             {
                 var user = await _users.GetUserById(id);
-                if (user == null) throw new Exception("Error finding user.");
+                if (user == null) return NotFound("User not found.");
 
                 return Ok(user);
             }
@@ -53,7 +54,6 @@ namespace mshop_api.Controllers
             try
             {
                 var user = await _users.CreateUser(userData);
-                if (user == null) throw new Exception("Error creating user.");
 
                 return CreatedAtAction(nameof(GetUsers), user);
             }
@@ -64,14 +64,14 @@ namespace mshop_api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User userData)
+        public async Task<IActionResult> UpdateUser(int id, UserDTO userData)
         {
             try
             {
-                if(id != userData.Id) return NotFound();
+                if(id != userData.Id) return NotFound("User not found.");
 
-                bool userUpdated = await _users.UpdateUser(userData);
-                if (!userUpdated) throw new Exception("Error updating user.");
+                 bool userUpdated = await _users.UpdateUser(userData);
+                if (!userUpdated) return BadRequest("Error updating user.");
 
                 return Ok("User updated successfully.");
             }
@@ -87,7 +87,7 @@ namespace mshop_api.Controllers
             try
             {
                 bool userDeleted = await _users.DeleteUser(id);
-                if (!userDeleted) throw new Exception("Error deleting user.");
+                if (!userDeleted) return BadRequest("Error deleting user.");
 
                 return Ok("User deleted successfully.");
             }
